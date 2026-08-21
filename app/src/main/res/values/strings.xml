@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PhotoTrans</string>
+    
+    <!-- 主界面 -->
+    <string name="send">发送</string>
+    <string name="receive">接收</string>
+    <string name="send_files">发送文件</string>
+    <string name="receive_files">接收文件</string>
+    <string name="select_files">选择文件</string>
+    <string name="select_photos">选择照片</string>
+    <string name="no_devices">未发现设备</string>
+    <string name="searching">正在搜索附近设备…</string>
+    <string name="search_hint">请确保双方已开启 Wi-Fi、蓝牙、位置信息\n并保持手机靠近</string>
+    <string name="refresh">重新搜索</string>
+    <string name="tap_to_send">点击发送</string>
+    <string name="scanning">扫描中…</string>
+    <string name="receiving">接收模式运行中</string>
+    
+    <!-- 远程直连 -->
+    <string name="remote_transfer">远程直连</string>
+    <string name="remote_ip_hint">输入 IPv4/v6 地址:端口</string>
+    <string name="connect">连接发送</string>
+    <string name="scan_qr">扫描二维码</string>
+    <string name="copy_ip">复制 IP</string>
+    
+    <!-- 传输状态 -->
+    <string name="transferring">传输中…</string>
+    <string name="transfer_complete">传输完成</string>
+    <string name="transfer_failed">传输失败</string>
+    <string name="transfer_cancelled">传输已取消</string>
+    
+    <!-- 格式转换 -->
+    <string name="auto_convert">自动转换格式</string>
+    <string name="format_detected">已检测格式</string>
+    <string name="format_converted">格式已转换</string>
+    <string name="learning_model">模型学习中…</string>
+    <string name="model_version">模型版本</string>
+    
+    <!-- 模型管理 -->
+    <string name="model_management">模型管理</string>
+    <string name="current_model">当前模型</string>
+    <string name="export_model">导出模型</string>
+    <string name="import_model">导入模型</string>
+    <string name="rollback_model">回滚模型</string>
+    <string name="model_learned_brands">已学习品牌</string>
+    
+    <!-- 免责声明 -->
+    <string name="disclaimer_title">隐私声明</string>
+    <string name="disclaimer_text">PhotoTrans 承诺：\n\n1. 所有照片处理在本地完成，不上传任何数据\n2. 格式学习仅分析照片结构，不读取照片内容\n3. 不收集任何个人隐私信息\n4. 您可以选择是否分享格式模型（不含照片内容）</string>
+    <string name="agree">同意并继续</string>
+    <string name="disagree">不同意</string>
+    
+    <!-- 设置 -->
+    <string name="settings">设置</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_auto_learn">自动学习格式</string>
+    <string name="settings_auto_learn_summary">充电且空闲时自动分析照片</string>
+    <string name="about">关于</string>
+    <string name="settings_about">关于 PhotoTrans</string>
+    <string name="version">版本</string>
+    <string name="settings_version">版本</string>
+    <string name="device_name">设备名称</string>
+</resources>
