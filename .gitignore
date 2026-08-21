@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+app/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Keystores / secrets
+*.jks
+*.keystore
+*.p12
+*.key
+signing.properties
+keystore.properties
+
+# Logs
+*.log
