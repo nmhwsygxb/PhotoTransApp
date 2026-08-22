@@ -221,7 +221,7 @@ class UdpDiscoveryService {
             while (interfaces.hasMoreElements()) {
                 val iface = interfaces.nextElement()
                 if (iface.isLoopback || !iface.isUp) continue
-                for (addr in iface.inetetAddresses) {
+                for (addr in iface.inetAddresses) {
                     val host = addr.hostAddress ?: continue
                     if (host.contains('.')) return host // 优先 IPv4
                 }
