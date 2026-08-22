@@ -65,6 +65,8 @@ class WifiDirectTransport private constructor(context: Context) {
     private var registered = false
     private var discoveryJob: Job? = null
     private var connectTimeoutJob: Job? = null
+    /** 当前发送协程，stopServer 时取消 */
+    private var sendJob: Job? = null
 
     /** P2P 群组是否已形成 (用于连接超时判断) */
     @Volatile
@@ -388,7 +390,8 @@ class WifiDirectTransport private constructor(context: Context) {
             listener?.onTransferFailed("缺少目标地址, 请先连接设备")
             return
         }
-        CoroutineScope(Dispatchers.IO).launch {
+        sendJob?.cancel() // 取消之前的发送
+        sendJob = CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             val file = File(filePath)
             if (!file.exists()) {
                 listener?.onTransferFailed("文件不存在: $filePath")
@@ -431,6 +434,10 @@ class WifiDirectTransport private constructor(context: Context) {
                 val inputStream = socket.getInputStream()
                 val fileSize = file.length()
 
+                // 发送 PT-HI 握手 (与 iOS/HarmonyOS 兼容：同一连接上先握手再发文件)
+                outputStream.write("PT-HI $deviceModelName\n".toByteArray())
+                outputStream.flush()
+
                 // HTTP PUT 请求头 (兼容互传联盟)
                 val header = buildHttpPutHeader(file.name, fileSize)
                 outputStream.write(header.toByteArray())
@@ -459,6 +466,12 @@ class WifiDirectTransport private constructor(context: Context) {
                 // 读取响应 (逐字节读, 不关闭底层流)
                 val response = readLineBytes(inputStream)
                 Log.d(TAG, "Server response: $response")
+
+                // 校验响应状态码是否为 2xx
+                if (response != null && !response.startsWith("HTTP/1.1 2")) {
+                    Log.w(TAG, "非成功响应: $response")
+                    // 仍继续，不中断（兼容 202 等非标准响应）
+                }
 
                 socket.close()
                 socket = null
@@ -534,6 +547,8 @@ class WifiDirectTransport private constructor(context: Context) {
         serverSocket = null
         serverJob?.cancel()
         serverJob = null
+        sendJob?.cancel()
+        sendJob = null
     }
 
     private suspend fun handleClient(socket: Socket, saveDir: String) {
@@ -639,7 +654,7 @@ class WifiDirectTransport private constructor(context: Context) {
 
             // 转存: 图片 → 系统相册 (失败则回退下载目录)
             var savedTo: String? = null
-            if (isMediaFile(tempFile.name)) {
+            if (isMediaFile(tempFile.name) || isMediaFileByMagic(tempFile.absolutePath)) {
                 savedTo = addToGallery(tempFile.absolutePath)
                 if (savedTo == null) {
                     Log.w(TAG, "相册转存失败, 回退到下载目录")
@@ -705,6 +720,38 @@ class WifiDirectTransport private constructor(context: Context) {
             name.endsWith(".heif", ignoreCase = true) || name.endsWith(".bmp", ignoreCase = true) ||
             name.endsWith(".mp4", ignoreCase = true) || name.endsWith(".3gp", ignoreCase = true) ||
             name.endsWith(".mkv", ignoreCase = true) || name.endsWith(".mov", ignoreCase = true)
+    }
+
+    /** 检查文件头魔数是否为已知媒体格式（补充扩展名判断） */
+    private fun isMediaFileByMagic(filePath: String): Boolean {
+        return try {
+            val stream = java.io.FileInputStream(filePath)
+            stream.use { `in` ->
+                val header = ByteArray(12)
+                val read = `in`.read(header)
+                if (read < 4) return false
+                when {
+                    // JPEG: FF D8 FF
+                    header[0] == 0xFF.toByte() && header[1] == 0xD8.toByte() && header[2] == 0xFF.toByte() -> true
+                    // PNG: 89 50 4E 47
+                    header[0] == 0x89.toByte() && header[1] == 0x50.toByte() && header[2] == 0x4E.toByte() && header[3] == 0x47.toByte() -> true
+                    // GIF: 47 49 46 38
+                    header[0] == 0x47.toByte() && header[1] == 0x49.toByte() && header[2] == 0x46.toByte() && (header[3] == 0x38.toByte()) -> true
+                    // WebP: 52 49 46 46 .... 57 45 42 50
+                    read >= 12 && header[0] == 0x52.toByte() && header[1] == 0x49.toByte() && header[2] == 0x46.toByte() && header[3] == 0x46.toByte() &&
+                        header[8] == 0x57.toByte() && header[9] == 0x45.toByte() && header[10] == 0x42.toByte() && header[11] == 0x50.toByte() -> true
+                    // HEIC/HEIF: ftyp (ftypmif1 / ftypheic)
+                    read >= 12 && header[4] == 0x66.toByte() && header[5] == 0x74.toByte() && header[6] == 0x79.toByte() && header[7] == 0x70.toByte() -> true
+                    // BMP: 42 4D
+                    header[0] == 0x42.toByte() && header[1] == 0x4D.toByte() -> true
+                    // MP4: ftyp (ftypisom / ftypmp42)
+                    read >= 8 && header[4] == 0x66.toByte() && header[5] == 0x74.toByte() && header[6] == 0x79.toByte() && header[7] == 0x70.toByte() -> true
+                    else -> false
+                }
+            }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /** 获取媒体 MIME 类型 */
