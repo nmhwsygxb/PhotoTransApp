@@ -63,6 +63,13 @@ class FormatConverter(private val context: Context) {
             }
 
             val sourceBrand = sourceResult.brandId
+
+            // 大文件不做全内存加载（>50MB 用流式复制）
+            val maxMemoryBytes = 50L * 1024 * 1024
+            if (inputFile.length() > maxMemoryBytes) {
+                return copyFile(inputFile, sourceResult, targetBrand, outputDir, "stream_copy")
+            }
+
             val bytes = inputFile.readBytes()
 
             // 根据容器类型选择转换方法
@@ -178,6 +185,24 @@ class FormatConverter(private val context: Context) {
         outputFile.parentFile?.mkdirs()
         outputFile.writeBytes(bytes)
         return ConversionResult(true, outputFile.absolutePath, method = method)
+    }
+
+    /** 流式复制大文件，避免 OOM */
+    private fun copyFile(input: File, source: FormatDetector.DetectionResult, targetBrand: String, outputDir: String, method: String): ConversionResult {
+        val outputName = "${input.nameWithoutExtension}_to_${targetBrand}.${input.extension}"
+        val outputFile = File(outputDir, outputName)
+        outputFile.parentFile?.mkdirs()
+        try {
+            input.inputStream().use { `in` ->
+                outputFile.outputStream().use { out ->
+                    `in`.copyTo(out, bufferSize = 65536)
+                }
+            }
+            return ConversionResult(true, outputFile.absolutePath, method = method)
+        } catch (e: Exception) {
+            Log.e(TAG, "Stream copy failed", e)
+            return ConversionResult(false, error = "流式复制失败: ${e.message}")
+        }
     }
 
     companion object {
