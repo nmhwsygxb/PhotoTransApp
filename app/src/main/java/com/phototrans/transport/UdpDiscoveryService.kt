@@ -8,10 +8,10 @@ import java.net.NetworkInterface
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * UDP 局域网设备发现 —— 与 iOS / HarmonyOS 版本兼容。
+ * UDP 局域网设备发现 —— 跨平台兼容（Android / iOS / HarmonyOS）。
  *
- * 协议（与 HarmonyOS DiscoveryService 一致）：
- *   Beacon 格式: PT-BEACON|<deviceId>|<name>|<port>|<proto>|<brand>
+ * 统一协议规范：
+ *   Beacon 格式: PT-BEACON|<deviceName>|<brand>|<ip>|<port>|
  *   端口: 47809
  *   发送间隔: 2 秒
  *   超时清除: 8 秒
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class UdpDiscoveryService {
 
     data class DiscoveredDevice(
-        val deviceId: String,
+        val deviceIdentity: String,
         val deviceName: String,
         val ip: String,
         val port: Int,
@@ -49,16 +49,18 @@ class UdpDiscoveryService {
     private val deviceLock = Any()
 
     // 本机身份
-    private var myDeviceId = "PH-${System.currentTimeMillis().toString(36)}"
+    private var myDeviceIdentity = "" // 用于自识别: "name|ip"
     private var myDeviceName = "Android"
     private var myBrand = "android"
-    private var tcpPort = 47808
+    private var myTcpPort = 47808
+    private var myLocalIp = ""
 
-    fun setupIdentity(deviceId: String? = null, deviceName: String, brand: String = "android", tcpPort: Int = 47808) {
-        if (deviceId != null) myDeviceId = deviceId
+    fun setupIdentity(deviceName: String, brand: String = "android", tcpPort: Int = 47808) {
         myDeviceName = deviceName
         myBrand = brand
-        this.tcpPort = tcpPort
+        myTcpPort = tcpPort
+        myLocalIp = getLocalIpAddress()
+        myDeviceIdentity = "$deviceName|$myLocalIp"
     }
 
     fun setListener(l: Listener?) { listener = l }
@@ -97,10 +99,10 @@ class UdpDiscoveryService {
                     val text = String(pkt.data, 0, pkt.length, Charsets.UTF_8).trim()
                     val fromIp = pkt.address.hostAddress ?: "unknown"
                     val dev = parseBeacon(text, fromIp) ?: continue
-                    if (dev.deviceId == myDeviceId) continue // 跳过自己
+                    if (dev.deviceIdentity == myDeviceIdentity) continue // 跳过自己
                     synchronized(deviceLock) {
                         dev.lastSeen = System.currentTimeMillis()
-                        devices[dev.deviceId] = dev
+                        devices[dev.deviceIdentity] = dev
                     }
                     notifyListener()
                 } catch (e: java.net.SocketTimeoutException) {
@@ -138,7 +140,9 @@ class UdpDiscoveryService {
 
     private fun sendBeacon(sock: DatagramSocket) {
         try {
-            val beacon = "$BEACON_PREFIX|$myDeviceId|$myDeviceName|$tcpPort|1.0|$myBrand"
+            val localIp = myLocalIp.ifEmpty { getLocalIpAddress() }
+            // 统一格式: PT-BEACON|<deviceName>|<brand>|<ip>|<port>|
+            val beacon = "$BEACON_PREFIX|$myDeviceName|$myBrand|$localIp|$myTcpPort|"
             val data = beacon.toByteArray(Charsets.UTF_8)
             // 向所有网络接口的广播地址发送
             val broadcastAddresses = getBroadcastAddresses()
@@ -176,13 +180,19 @@ class UdpDiscoveryService {
 
     private fun parseBeacon(text: String, fromIp: String): DiscoveredDevice? {
         val parts = text.split('|')
-        if (parts.size < 6 || parts[0] != BEACON_PREFIX) return null
+        // 统一格式: PT-BEACON|<deviceName>|<brand>|<ip>|<port>|
+        if (parts.size < 5 || parts[0] != BEACON_PREFIX) return null
+        val deviceName = parts[1]
+        val brand = parts[2]
+        val ip = parts[3].ifEmpty { fromIp }
+        val port = parts[4].toIntOrNull() ?: 47808
+        val identity = "$deviceName|$ip"
         return DiscoveredDevice(
-            deviceId = parts[1],
-            deviceName = parts[2],
-            ip = fromIp,
-            port = parts[3].toIntOrNull() ?: 47808,
-            brand = parts[5],
+            deviceIdentity = identity,
+            deviceName = deviceName,
+            ip = ip,
+            port = port,
+            brand = brand,
             lastSeen = System.currentTimeMillis()
         )
     }
@@ -203,6 +213,23 @@ class UdpDiscoveryService {
             Log.w(TAG, "getBroadcastAddresses error: ${e.message}")
         }
         return result
+    }
+
+    private fun getLocalIpAddress(): String {
+        try {
+            val interfaces = NetworkInterface.getNetworkInterfaces() ?: return ""
+            while (interfaces.hasMoreElements()) {
+                val iface = interfaces.nextElement()
+                if (iface.isLoopback || !iface.isUp) continue
+                for (addr in iface.inetetAddresses) {
+                    val host = addr.hostAddress ?: continue
+                    if (host.contains('.')) return host // 优先 IPv4
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "getLocalIpAddress error: ${e.message}")
+        }
+        return ""
     }
 
     private fun notifyListener() {
