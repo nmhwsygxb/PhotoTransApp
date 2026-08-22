@@ -172,7 +172,7 @@ class WifiDirectTransport private constructor(context: Context) {
     fun getReceiver(): WifiDirectBroadcastReceiver? = receiver
     fun isRegistered(): Boolean = registered
 
-    // ─── 发现设备 ───────────────────────────────────
+    // ──── 发现设备 ───────────────────────────────────────
 
     fun startDiscovery(showError: Boolean = true) {
         if (isRunning) return
@@ -243,7 +243,7 @@ class WifiDirectTransport private constructor(context: Context) {
 
     fun getPeers(): List<WifiP2pDevice> = receiver?.getPeers() ?: emptyList()
 
-    // ─── 连接设备 ───────────────────────────────────
+    // ──── 连接设备 ───────────────────────────────────────
 
     fun connect(device: WifiP2pDevice) {
         val ch = channel ?: run {
@@ -269,7 +269,7 @@ class WifiDirectTransport private constructor(context: Context) {
                 try { mgr.cancelConnect(ch, null) } catch (_: Exception) {}
                 try { mgr.removeGroup(ch, null) } catch (_: Exception) {}
                 role = Role.NONE
-                listener?.onTransferFailed("连接超时: 对方未响应邀请。\n请确认对方 App 已在『近距离连接』模式并开启 Wi-Fi;\n或改用『远距离连接』扫码/输入 IP。")
+                listener?.onTransferFailed("连接超时: 对方未响应邀请。\n请确认对方 App 已在「近距离连接」模式并开启 Wi-Fi;\n或改用「远距离连接」扫码/输入 IP。")
             }
         }
 
@@ -336,7 +336,7 @@ class WifiDirectTransport private constructor(context: Context) {
 
     /**
      * 握手: 连接对方端口, 发送本机机型, 读取对方机型
-     * 成功返回对方机型名; 失败返回 null
+     * 成功返回对方机型名, 失败返回 null
      */
     fun handshake(host: String, port: Int = TRANSFER_PORT): String? {
         return handshakeEx(host, port).first
@@ -366,7 +366,7 @@ class WifiDirectTransport private constructor(context: Context) {
             }
         } catch (e: java.net.SocketTimeoutException) {
             Log.d(TAG, "Handshake timeout: $host")
-            null to "连接超时: 请确认对方已开启『远距离连接』且在同一网络"
+            null to "连接超时: 请确认对方已开启「远距离连接」且在同一网络"
         } catch (e: java.net.ConnectException) {
             Log.d(TAG, "Handshake refused: $host")
             null to "连接被拒绝: 对方可能未开启接收或地址错误"
@@ -438,6 +438,14 @@ class WifiDirectTransport private constructor(context: Context) {
                 outputStream.write("PT-HI $deviceModelName\n".toByteArray())
                 outputStream.flush()
 
+                // 读取对方 PT-HI 握手响应 (与 iOS/HarmonyOS 一致)
+                val peerHandshake = readLineBytes(inputStream)
+                if (peerHandshake == null || !peerHandshake.startsWith("PT-HI")) {
+                    Log.w(TAG, "对方握手响应异常: $peerHandshake")
+                } else {
+                    Log.d(TAG, "握手成功: ${peerHandshake.removePrefix("PT-HI").trim()}")
+                }
+
                 // HTTP PUT 请求头 (兼容互传联盟)
                 val header = buildHttpPutHeader(file.name, fileSize)
                 outputStream.write(header.toByteArray())
@@ -463,14 +471,14 @@ class WifiDirectTransport private constructor(context: Context) {
                 }
                 outputStream.flush()
 
-                // 读取响应 (逐字节读, 不关闭底层流)
-                val response = readLineBytes(inputStream)
-                Log.d(TAG, "Server response: $response")
+                // 读取 HTTP 响应 (读取两行：状态行 + 空行结束)
+                val httpResponse = readLineBytes(inputStream)
+                Log.d(TAG, "HTTP response: $httpResponse")
 
                 // 校验响应状态码是否为 2xx
-                if (response != null && !response.startsWith("HTTP/1.1 2")) {
-                    Log.w(TAG, "非成功响应: $response")
-                    // 仍继续，不中断（兼容 202 等非标准响应）
+                val transferOk = httpResponse != null && httpResponse.startsWith("HTTP/1.1 2")
+                if (!transferOk) {
+                    Log.w(TAG, "非成功响应: $httpResponse")
                 }
 
                 socket.close()
@@ -483,7 +491,7 @@ class WifiDirectTransport private constructor(context: Context) {
                 Log.e(TAG, "Send timeout", e)
                 try { socket?.close() } catch (_: Exception) {}
                 withContext(Dispatchers.Main) {
-                    listener?.onTransferFailed("连接超时: $host:$port (请确认对方已点击『接收』)")
+                    listener?.onTransferFailed("连接超时: $host:$port (请确认对方已点击「接收」)")
                 }
             } catch (e: java.net.ConnectException) {
                 Log.e(TAG, "Send connection refused", e)
@@ -710,7 +718,7 @@ class WifiDirectTransport private constructor(context: Context) {
         }
     }
 
-    // ─── 内部方法 ───────────────────────────────────
+    // ──── 内部方法 ───────────────────────────────────
 
     /** 判断是否是图片/视频文件 */
     private fun isMediaFile(name: String): Boolean {
@@ -849,7 +857,7 @@ class WifiDirectTransport private constructor(context: Context) {
                 null
             }
         } else {
-            // API < 29: 直接写入公共下载目录 (已授予 WRITE_EXTERNAL_STORAGE)
+            // API < 29: 直接写入公共下载目录 (已授权 WRITE_EXTERNAL_STORAGE)
             return try {
                 val dir = android.os.Environment
                     .getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
@@ -869,10 +877,8 @@ class WifiDirectTransport private constructor(context: Context) {
         val encodedName = java.net.URLEncoder.encode(fileName, "UTF-8")
             .replace("+", "%20")
         return "PUT /$encodedName HTTP/1.1\r\n" +
-            "Host: localhost\r\n" +
             "Content-Length: $fileSize\r\n" +
-            "Content-Type: application/octet-stream\r\n" +
-            "Connection: close\r\n\r\n"
+            "\r\n"
     }
 
     /** 逐字节读取一行 (不含换行符), 不预读后续字节; 流结束返回 null */
