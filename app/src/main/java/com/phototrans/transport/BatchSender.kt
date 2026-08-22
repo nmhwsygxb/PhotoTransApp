@@ -1,1 +1,171 @@
-cGFja2FnZSBjb20ucGhvdG90cmFuc3RyYW5zcG9ydAoKaW1wb3J0IGFuZHJvaWQub3MuQnVpbGQKaW1wb3J0IGFuZHJvaWQudXRpbC5Mb2cKaW1wb3J0IGphdmEuaW8uRmlsZQppbXBvcnQgamF2YS5pby5GaWxlSW5wdXRTdHJlYW0KaW1wb3J0IGphdmEubmV0LkluZXRTb2NrZXRBZGRyZXNzCmltcG9ydCBqYXZhLm5ldC5Tb2NrZXQKCi8qKgogKiDmnLnogI7mlofku7bliqDpgIHlmagKICoKICog5qC45Liq5Y+R6YCB5paH5Lu277yM5q+P5Liq5paH5Lu25Lit6K6p5o6l5o6l6L+e5o6lCiAqIOW7uueUqCBXaWZpRGlyZWN0VHJhbnNwb3J0LnNlbmRKb2IKICog5LuO6ICM5YWD5Y2V5Y2V5paH5Y+R6YCB5pe25ZWG5L2T5p+l6K+i55qE6Zeu6aKY44CCCiAqLwpvYmplY3QgQmF0Y2hTZW5kZXIgewoKICAgIHByaXZhdGUgY29uc3QgdmFsIFRBRyA9ICJCYXRjaFNlbmRlciIKCiAgICAvKioKICAgICAqIOaJueiHjuWPh+mAgeaWh+S7tu+8jOWQqOeUqOWPh+mAge+8jOavj+S4quaWh+S7tuW4uOe6v+aOpeaLqSBUQ1Ag6L+e5o6lCiAgICAgKgogICAgICogQHBhcmFtIGZpbGVQYXRocyDmlofku7blsZ7luo/liJfooagKICAgICAqIEBwYXJhbSBob3N0IOebruagh+W4uOadk+WcsOWdgAogICAgICogQHBhcmFtIHBvcnQg55uu5qCH566A5Y2VCiAgICAgKiBAcGFyYW0gZGV2aWNlTW9kZWxOYW1lIOacrOmfs+S5n+Wei+WQje+8iOaPkuS7t+eUqO+8iQogICAgICogQHBhcmFtIG9uUHJvZ3Jlc3Mg6L+b5q2l5Zue5YiwKNIoeXRlc3RyYW5zZmVycmVkLCB0b3RhbEJ5dGVzKQogICAgICogQHBhcmFtIG9uRmlsZUNvbXBsZXRlIOWMheS4quWvhueggeWujOaIkOWQjuWYh+KAlChmaWxlTmFtZSkKICAgICAqIEBwYXJhbSBvbkVycm9yIOmUmeivry3lm57lpI3lmajop4jvvIhlcnJvck1lc3NhZ2UpCiAgICAgKi8KICAgIGZ1biBzZW5kRmlsZXMoCiAgICAgICAgZmlsZVBhdGhzOiBMaXN0PFN0cmluZz4sCiAgICAgICAgaG9zdDogU3RyaW5nLAogICAgICAgIHBvcnQ6IEludCA9IDQ3ODA4LAogICAgICAgIGRldmljZU1vZGVsTmFtZTogU3RyaW5nID0gZ2V0RGV2aWNlTW9kZWxOYW1lKCksCiAgICAgICAgb25Qcm9ncmVzczogKChMb25nLCBMb25nKSAtPiBVbml0KT8gPSBudWxsLAogICAgICAgIG9uRmlsZUNvbXBsZXRlOiAoKFN0cmluZykgLT4gVW5pdCk/ID0gbnVsbCwKICAgICAgICBvbkVycm9yOiAoKFN0cmluZykgLT4gVW5pdCk/ID0gbnVsbAogICAgKSB7CiAgICAgICAgaWYgKGhvc3QuaXNCbGFuaygpKSB7CiAgICAgICAgICAgIG9uRXJyb3I/Lmludm9rZSgi57yW5bCR55uu5qCH5Zyw5Z2AIikKICAgICAgICAgICAgcmV0dXJuCiAgICAgICAgfQoKICAgICAgICBmb3IgKChpbmRleCwgZmlsZVBhdGgpIGluIGZpbGVQYXRocy53aXRoSW5kZXgoKSkgewogICAgICAgICAgICB2YWwgZmlsZSA9IEZpbGUoZmlsZVBhdGgpCiAgICAgICAgICAgIGlmICghZmlsZS5leGlzdHMoKSkgewogICAgICAgICAgICAgICAgb25FcnJvcj8uaW52b2tlKCLmlofku7bkuI3lrZjlnKQ6ICRmaWxlUGF0aCIpCiAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICB9CgogICAgICAgICAgICBMb2cuZChUQUcsICJTZW5kaW5nIGZpbGUgJHtpbmRleCArIDF9LyR7ZmlsZVBhdGhzLnNpemV9OiAke2ZpbGUubmFtZX0iKQoKICAgICAgICAgICAgdmFyIHNvY2tldDogU29ja2V0PyA9IG51bGwKICAgICAgICAgICAgdHJ5IHsKICAgICAgICAgICAgICAgIC8vIOi/nuaOpe+8iOW4uOaUtOWcsOacgOWkmjPmrKHvvIkKICAgICAgICAgICAgICAgIGZvciAoYXR0ZW1wdCBpbiAxLi4zKSB7CiAgICAgICAgICAgICAgICAgICAgdHJ5IHsKICAgICAgICAgICAgICAgICAgICAgICAgc29ja2V0ID0gU29ja2V0KCkKICAgICAgICAgICAgICAgICAgICAgICAgc29ja2V0LmNvbm5lY3QoSW5ldFNvY2tldEFkZHJlc3MoaG9zdCwgcG9ydCksIDE1MDAwKQogICAgICAgICAgICAgICAgICAgICAgICBicmVhawogICAgICAgICAgICAgICAgICAgIH0gY2F0Y2ggKGU6IGphdmEubmV0LkNvbm5lY3RFeGNlcHRpb24pIHsKICAgICAgICAgICAgICAgICAgICAgICAgTG9nLmQoVEFHLCAiQ29ubmVjdCBhdHRlbXB0ICRhdHRlbXB0IGZhaWxlZCwgcmV0cnlpbmcuLi4iKQogICAgICAgICAgICAgICAgICAgICAgICBpZiAoYXR0ZW1wdCA8IDMpIFRocmVhZC5zbGVlcCgxMDAwKQogICAgICAgICAgICAgICAgICAgICAgICBlbHNlIHRocm93IGUKICAgICAgICAgICAgICAgICAgICB9IGNhdGNoIChlOiBqYXZhLm5ldC5Tb2NrZXRUaW1lb3V0RXhjZXB0aW9uKSB7CiAgICAgICAgICAgICAgICAgICAgICAgIExvZy5kKFRBRywgIkNvbm5lY3QgdGltZW91dCBhdHRlbXB0ICRhdHRlbXB0LCByZXRyeWluZy4uLiIpCiAgICAgICAgICAgICAgICAgICAgICAgIGlmIChhdHRlbXB0IDwgMykgVGhyZWFkLnNsZWVwKDEwMDApCiAgICAgICAgICAgICAgICAgICAgICAgIGVsc2UgdGhyb3cgZQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICB2YWwgc29jayA9IHNvY2tldCA/OiB0aHJvdyBFeGNlcHRpb24oIkZhaWxlZCB0byBjb25uZWN0IGFmdGVyIDMgYXR0ZW1wdHMiKQogICAgICAgICAgICAgICAgdmFsIG91dHB1dFN0cmVhbSA9IHNvY2suZ2V0T3V0cHV0U3RyZWFtKCkKICAgICAgICAgICAgICAgIHZhbCBpbnB1dFN0cmVhbSA9IHNvY2suZ2V0SW5wdXRTdHJlYW0oKQogICAgICAgICAgICAgICAgdmFsIGZpbGVTaXplID0gZmlsZS5sZW5ndGgoKQoKICAgICAgICAgICAgICAgIC8vIFlR6YCB6YCBIFBULUhJIOaPkuS7twogICAgICAgICAgICAgICAgb3V0cHV0U3RyZWFtLndyaXRlKCJQVC1ISSAkZGV2aWNlTW9kZWxOYW1lXG4iLnRvQnl0ZUFycmF5KCkpCiAgICAgICAgICAgICAgICBvdXRwdXRTdHJlYW0uZmx1c2goKQoKICAgICAgICAgICAgICAgIC8vIOivt+WPluWvueaWryBQVC1ISSDmj5Lku7flm57lpI0KICAgICAgICAgICAgICAgIHZhbCBwZWVySGFuZHNoYWtlID0gcmVhZExpbmVCeXRlcyhpbnB1dFN0cmVhbSkKICAgICAgICAgICAgICAgIGlmIChwZWVySGFuZHNoYWtlICE9IG51bGwgJiYgcGVlckhhbmRzaGFrZS5zdGFydHNXaXRoKCJQVC1ISSIpKSB7CiAgICAgICAgICAgICAgICAgICAgTG9nLmQoVEFHLCAiSGFuZHNoYWtlIHdpdGg6ICR7cGVlckhhbmRzaGFrZS5yZW1vdmVQcmVmaXgoIlBULUhJIikudHJpbSgpfSIpCiAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgLy8gSFRUUCBQVVTor7fmsYLlpLQKICAgICAgICAgICAgICAgIHZhbCBlbmNvZGVkTmFtZSA9IGphdmEubmV0LlVSTEVuY29kZXIuZW5jb2RlKGZpbGUubmFtZSwgIlVURi04IikKICAgICAgICAgICAgICAgICAgICAucmVwbGFjZSgiKyIsICIlMjAiKQogICAgICAgICAgICAgICAgdmFsIGhlYWRlciA9ICJQVVIgLyRlbmNvZGVkTmFtZSBIVFRQLzEuMVxyXG4iICsKICAgICAgICAgICAgICAgICAgICAiQ29udGVudC1MZW5ndGg6ICRmaWxlU2l6ZVxyXG4iICsKICAgICAgICAgICAgICAgICAgICAiXHJcbiIKICAgICAgICAgICAgICAgIG91dHB1dFN0cmVhbS53cml0ZShoZWFkZXIudG9CeXRlQXJyYXkoKSkKICAgICAgICAgICAgICAgIG91dHB1dFN0cmVhbS5mbHVzaCgpCgogICAgICAgICAgICAgICAgLy8g5Y+R6YCB5paH5Lu25pWw5o2uCiAgICAgICAgICAgICAgICB2YWwgYnVmZmVyID0gQnl0ZUFycmF5KDY1NTM2KQogICAgICAgICAgICAgICAgdmFyIHRvdGFsU2VudCA9IDBMCiAgICAgICAgICAgICAgICB2YXIgbGFzdFBjdCA9IC0xTAogICAgICAgICAgICAgICAgRmlsZUlucHV0U3RyZWFtKGZpbGUpLnVzZSB7IGZpcyAtPgogICAgICAgICAgICAgICAgICAgIHZhciBieXRlc1JlYWQ6IEludAogICAgICAgICAgICAgICAgICAgIHdoaWxlIChmaXMucmVhZChidWZmZXIpLmFsc28geyBieXRlc1JlYWQgPSBpdCB9ICE9IC0xKSB7CiAgICAgICAgICAgICAgICAgICAgICAgIG91dHB1dFN0cmVhbS53cml0ZShidWZmZXIsIDAsIGJ5dGVzUmVhZCkKICAgICAgICAgICAgICAgICAgICAgICAgdG90YWxTZW50ICs9IGJ5dGVzUmVhZAogICAgICAgICAgICAgICAgICAgICAgICB2YWwgcGN0ID0gaWYgKGZpbGVTaXplID4gMCkgdG90YWxTZW50ICogMTAwIC8gZmlsZVNpemUgZWxzZSAxMDBMCiAgICAgICAgICAgICAgICAgICAgICAgIGlmIChwY3QgIT0gbGFzdFBjdCkgewogICAgICAgICAgICAgICAgICAgICAgICAgICAgbGFzdFBjdCA9IHBjdAogICAgICAgICAgICAgICAgICAgICAgICAgICAgb25Qcm9ncmVzcz8uaW52b2tlKHRvdGFsU2VudCwgZmlsZVNpemUpCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBvdXRwdXRTdHJlYW0uZmx1c2goKQoKICAgICAgICAgICAgICAgIC8vIOivt+WPlkhUVFAg5bOP5bqPCiAgICAgICAgICAgICAgICB2YWwgaHR0cFJlc3BvbnNlID0gcmVhZExpbmVCeXRlcyhpbnB1dFN0cmVhbSkKICAgICAgICAgICAgICAgIExvZy5kKFRBRywgIkhUVFAgcmVzcG9uc2UgZm9yICR7ZmlsZS5uYW1lfTogJGh0dHBSZXNwb25zZSIpCgogICAgICAgICAgICAgICAgLy8g5Y+v6YCJ77ya57uZ57uT6K+75YaZ5Yiw56m6oCwKICAgICAgICAgICAgICAgIGlmIChodHRwUmVzcG9uc2UgIT0gbnVsbCAmJiBodHRwUmVzcG9uc2Uuc3RhcnRzV2l0aCgiSFRUUC8iKSkgewogICAgICAgICAgICAgICAgICAgIHdoaWxlICh0cnVlKSB7CiAgICAgICAgICAgICAgICAgICAgICAgIHZhbCBsaW5lID0gcmVhZExpbmVCeXRlcyhpbnB1dFN0cmVhbSkgPzogYnJlYWsKICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGxpbmUuaXNFbXB0eSgpKSBicmVhawogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICBzb2NrLmNsb3NlKCkKICAgICAgICAgICAgICAgIHNvY2tldCA9IG51bGwKCiAgICAgICAgICAgICAgICBvbkZpbGVDb21wbGV0ZT8uaW52b2tlKGZpbGUubmFtZSkKICAgICAgICAgICAgICAgIExvZy5kKFRBRywgIkZpbGUgJHtmaWxlLm5hbWV9IHNlbnQgc3VjY2Vzc2Z1bGx5IikKCiAgICAgICAgICAgIH0gY2F0Y2ggKGU6IGphdmEubmV0LlNvY2tldFRpbWVvdXRFeGNlcHRpb24pIHsKICAgICAgICAgICAgICAgIExvZy5lKFRBRywgIlRpbWVvdXQgc2VuZGluZyAke2ZpbGUubmFtZX0iLCBlKQogICAgICAgICAgICAgICAgdHJ5IHsgc29ja2V0Py5jbG9zZSgpIH0gY2F0Y2ggKF86IEV4Y2VwdGlvbikge30KICAgICAgICAgICAgICAgIG9uRXJyb3I/Lmludm9rZSgi5Y+R6YCBICR7ZmlsZS5uYW1lfSDotoXml7Y6ICRob3N0OiRwb3J0IikKICAgICAgICAgICAgfSBjYXRjaCAoZTogamF2YS5uZXQuQ29ubmVjdEV4Y2VwdGlvbikgewogICAgICAgICAgICAgICAgTG9nLmUoVEFHLCAiQ29ubmVjdGlvbiByZWZ1c2VkIGZvciAke2ZpbGUubmFtZX0iLCBlKQogICAgICAgICAgICAgICAgdHJ5IHsgc29ja2V0Py5jbG9zZSgpIH0gY2F0Y2ggKF86IEV4Y2VwdGlvbikge30KICAgICAgICAgICAgICAgIG9uRXJyb3I/Lmludm9rZSgi5Y+R6YCBICR7ZmlsZS5uYW1lfSDov57mjqXihKIy5Z6L57ypIikKICAgICAgICAgICAgfSBjYXRjaCAoZTogRXhjZXB0aW9uKSB7CiAgICAgICAgICAgICAgICBMb2cuZShUQUcsICJGYWlsZWQgdG8gc2VuZCAke2ZpbGUubmFtZX0iLCBlKQogICAgICAgICAgICAgICAgdHJ5IHsgc29ja2V0Py5jbG9zZSgpIH0gY2F0Y2ggKF86IEV4Y2VwdGlvbikge30KICAgICAgICAgICAgICAgIG9uRXJyb3I/Lmludm9rZSgi5Y+R6YCBICR7ZmlsZS5uYW1lfSDlpLHotKU6ICR7ZS5tZXNzYWdlfSIpCiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9CgogICAgLyoqIOWQi+Wtl+S4gOihjOmVv+W+l+W4uOaOpe+8iOS4jeWQr+WPluaJruespu+8iSAqLwogICAgcHJpdmF0ZSBmdW4gcmVhZExpbmVCeXRlcyhpbnB1dDogamF2YS5pby5JbnB1dFN0cmVhbSk6IFN0cmluZz8gewogICAgICAgIHZhbCBzYiA9IFN0cmluZ0J1aWxkZXIoKQogICAgICAgIHZhciBiID0gaW5wdXQucmVhZCgpCiAgICAgICAgaWYgKGIgPT0gLTEpIHJldHVybiBudWxsCiAgICAgICAgd2hpbGUgKGIgIT0gLTEgJiYgYiAhPSAnXG4nLmNvZGUpIHsKICAgICAgICAgICAgaWYgKGIgIT0gJ1xyJy5jb2RlKSBzYi5hcHBlbmQoYi50b0NoYXIoKSkKICAgICAgICAgICAgYiA9IGlucHV0LnJlYWQoKQogICAgICAgIH0KICAgICAgICByZXR1cm4gc2IudG9TdHJpbmcoKQogICAgfQoKICAgIC8qKiDojrflj5bmnKzpn7PlnovlnovlkI0gKi8KICAgIHByaXZhdGUgZnVuIGdldERldmljZU1vZGVsTmFtZSgpOiBTdHJpbmcgewogICAgICAgIHJldHVybiB0cnkgewogICAgICAgICAgICB2YWwgbWFudWZhY3R1cmVyID0gQnVpbGQuTUFOVUZBQ1RVUkVSLmlmQmxhbmsgeyAiQW5kcm9pZCIgfQogICAgICAgICAgICB2YWwgbW9kZWwgPSBCdWlsZC5NT0RFTC5pZkJsdW5rIHsgIiIgfQogICAgICAgICAgICBpZiAobW9kZWwuc3RhcnRzV2l0aChtYW51ZmFjdHVyZXIsIGlnbm9yZUNhc2UgPSB0cnVlKSkgbW9kZWwgZWxzZSAiJG1hbnVmYWN0dXJlciAkbW9kZWwiCiAgICAgICAgfSBjYXRjaCAoZTogRXhjZXB0aW9uKSB7CiAgICAgICAgICAgICJBbmRyb2lkIgogICAgICAgIH0KICAgIH0KfQ==
+package com.phototrans.transport
+
+import android.os.Build
+import android.util.Log
+import java.io.File
+import java.io.FileInputStream
+import java.net.InetSocketAddress
+import java.net.Socket
+
+/**
+ * 批量文件发送器
+ *
+ * 逐个发送文件，每个文件独立连接，不使用 WifiDirectTransport.sendJob
+ * 从而避免单文件发送时 sendJob 被取消的问题。
+ */
+object BatchSender {
+
+    private const val TAG = "BatchSender"
+
+    /**
+     * 批量发送文件，逐个发送，每个文件独立 TCP 连接
+     *
+     * @param filePaths 文件路径列表
+     * @param host 目标主机地址
+     * @param port 目标端口
+     * @param deviceModelName 本机机型名（握手用）
+     * @param onProgress 进度回调 (bytesTransferred, totalBytes)
+     * @param onFileComplete 单个文件完成回调 (fileName)
+     * @param onError 错误回调 (errorMessage)
+     */
+    fun sendFiles(
+        filePaths: List<String>,
+        host: String,
+        port: Int = 47808,
+        deviceModelName: String = getDeviceModelName(),
+        onProgress: ((Long, Long) -> Unit)? = null,
+        onFileComplete: ((String) -> Unit)? = null,
+        onError: ((String) -> Unit)? = null
+    ) {
+        if (host.isBlank()) {
+            onError?.invoke("缺少目标地址")
+            return
+        }
+
+        for ((index, filePath) in filePaths.withIndex()) {
+            val file = File(filePath)
+            if (!file.exists()) {
+                onError?.invoke("文件不存在: $filePath")
+                continue
+            }
+
+            Log.d(TAG, "Sending file ${index + 1}/${filePaths.size}: ${file.name}")
+
+            var socket: Socket? = null
+            try {
+                // 连接（带重试，最多3次）
+                for (attempt in 1..3) {
+                    try {
+                        socket = Socket()
+                        socket.connect(InetSocketAddress(host, port), 15000)
+                        break
+                    } catch (e: java.net.ConnectException) {
+                        Log.d(TAG, "Connect attempt $attempt failed, retrying...")
+                        if (attempt < 3) Thread.sleep(1000)
+                        else throw e
+                    } catch (e: java.net.SocketTimeoutException) {
+                        Log.d(TAG, "Connect timeout attempt $attempt, retrying...")
+                        if (attempt < 3) Thread.sleep(1000)
+                        else throw e
+                    }
+                }
+
+                val sock = socket ?: throw Exception("Failed to connect after 3 attempts")
+                val outputStream = sock.getOutputStream()
+                val inputStream = sock.getInputStream()
+                val fileSize = file.length()
+
+                // 发送 PT-HI 握手
+                outputStream.write("PT-HI $deviceModelName\n".toByteArray())
+                outputStream.flush()
+
+                // 读取对方 PT-HI 握手响应
+                val peerHandshake = readLineBytes(inputStream)
+                if (peerHandshake != null && peerHandshake.startsWith("PT-HI")) {
+                    Log.d(TAG, "Handshake with: ${peerHandshake.removePrefix("PT-HI").trim()}")
+                }
+
+                // HTTP PUT 请求头
+                val encodedName = java.net.URLEncoder.encode(file.name, "UTF-8")
+                    .replace("+", "%20")
+                val header = "PUT /$encodedName HTTP/1.1\r\n" +
+                    "Content-Length: $fileSize\r\n" +
+                    "\r\n"
+                outputStream.write(header.toByteArray())
+                outputStream.flush()
+
+                // 发送文件数据
+                val buffer = ByteArray(65536)
+                var totalSent = 0L
+                var lastPct = -1L
+                FileInputStream(file).use { fis ->
+                    var bytesRead: Int
+                    while (fis.read(buffer).also { bytesRead = it } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                        totalSent += bytesRead
+                        val pct = if (fileSize > 0) totalSent * 100 / fileSize else 100L
+                        if (pct != lastPct) {
+                            lastPct = pct
+                            onProgress?.invoke(totalSent, fileSize)
+                        }
+                    }
+                }
+                outputStream.flush()
+
+                // 读取 HTTP 响应
+                val httpResponse = readLineBytes(inputStream)
+                Log.d(TAG, "HTTP response for ${file.name}: $httpResponse")
+
+                // 可选：继续读取直到空行
+                if (httpResponse != null && httpResponse.startsWith("HTTP/")) {
+                    while (true) {
+                        val line = readLineBytes(inputStream) ?: break
+                        if (line.isEmpty()) break
+                    }
+                }
+
+                sock.close()
+                socket = null
+
+                onFileComplete?.invoke(file.name)
+                Log.d(TAG, "File ${file.name} sent successfully")
+
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "Timeout sending ${file.name}", e)
+                try { socket?.close() } catch (_: Exception) {}
+                onError?.invoke("发送 ${file.name} 超时: $host:$port")
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "Connection refused for ${file.name}", e)
+                try { socket?.close() } catch (_: Exception) {}
+                onError?.invoke("发送 ${file.name} 连接被拒绝")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send ${file.name}", e)
+                try { socket?.close() } catch (_: Exception) {}
+                onError?.invoke("发送 ${file.name} 失败: ${e.message}")
+            }
+        }
+    }
+
+    /** 读取一行（不含换行符） */
+    private fun readLineBytes(input: java.io.InputStream): String? {
+        val sb = StringBuilder()
+        var b = input.read()
+        if (b == -1) return null
+        while (b != -1 && b != '\n'.code) {
+            if (b != '\r'.code) sb.append(b.toChar())
+            b = input.read()
+        }
+        return sb.toString()
+    }
+
+    /** 获取本机机型名 */
+    private fun getDeviceModelName(): String {
+        return try {
+            val manufacturer = Build.MANUFACTURER.ifBlank { "Android" }
+            val model = Build.MODEL.ifBlank { "" }
+            if (model.startsWith(manufacturer, ignoreCase = true)) model else "$manufacturer $model"
+        } catch (e: Exception) {
+            "Android"
+        }
+    }
+}
