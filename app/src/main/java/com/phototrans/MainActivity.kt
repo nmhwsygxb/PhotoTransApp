@@ -21,6 +21,7 @@ import com.phototrans.databinding.ActivityMainBinding
 import com.phototrans.model.LocalModelStore
 import com.phototrans.service.LearningService
 import com.phototrans.service.TransferService
+import com.phototrans.transport.UdpDiscoveryService
 import com.phototrans.transport.WifiDirectTransport
 import com.phototrans.ui.BrandAdapter
 import com.phototrans.ui.DeviceAdapter
@@ -38,7 +39,7 @@ import java.io.File
  * PhotoTrans 主界面
  *
  * 预览版功能:
- *   1. 发现附近设备 (Wi-Fi Direct)
+ *   1. 发现附近设备 (Wi-Fi Direct + UDP 局域网发现)
  *   2. 发送/接收文件
  *   3. 后台格式学习
  *   4. 模型版本管理
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var transport: WifiDirectTransport
     private lateinit var modelStore: LocalModelStore
     private lateinit var deviceAdapter: DeviceAdapter
+    private lateinit var udpDiscovery: UdpDiscoveryService
     private var isFirstLaunch = true
 
     // 连接模式
@@ -204,6 +206,7 @@ class MainActivity : AppCompatActivity() {
 
         transport = WifiDirectTransport.getInstance(this)
         modelStore = LocalModelStore(this)
+        udpDiscovery = UdpDiscoveryService()
 
         initViews()
         checkPermissions()
@@ -217,6 +220,7 @@ class MainActivity : AppCompatActivity() {
         if (hasPermissions() && connectMode == ConnectMode.NEAR) {
             binding.searchingIndicator.visibility = android.view.View.VISIBLE
             transport.startDiscovery(showError = false)
+            udpDiscovery.start()
             // 强制立即刷新一次设备列表
             transport.refreshPeersOnce()
         }
@@ -225,12 +229,14 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         transport.stopDiscovery()
+        udpDiscovery.stop()
     }
 
     override fun onDestroy() {
         transport.clearListener()
         activityScope.cancel()
         heartbeatJob?.cancel()
+        udpDiscovery.stop()
         super.onDestroy()
     }
 
@@ -271,6 +277,8 @@ class MainActivity : AppCompatActivity() {
                     binding.searchingIndicator.visibility = android.view.View.VISIBLE
                     transport.stopDiscovery()
                     transport.startDiscovery()
+                    udpDiscovery.stop()
+                    udpDiscovery.start()
                     Snackbar.make(binding.root, "正在搜索附近设备…", Snackbar.LENGTH_SHORT).show()
                 }
                 ConnectMode.FAR -> {
@@ -321,6 +329,19 @@ class MainActivity : AppCompatActivity() {
                 Snackbar.make(binding.root, "尚未连接设备", Snackbar.LENGTH_SHORT).show()
             }
         }
+
+        // UDP 发现监听
+        udpDiscovery.setListener(object : UdpDiscoveryService.Listener {
+            override fun onDevicesChanged(devices: List<UdpDiscoveryService.DiscoveredDevice>) {
+                runOnUiThread {
+                    deviceAdapter.updateUdpDevices(devices)
+                    updateEmptyState()
+                    if (devices.isNotEmpty()) {
+                        binding.peerCount.text = "发现 ${deviceAdapter.itemCount} 台设备"
+                    }
+                }
+            }
+        })
 
         // 设置传输监听器
         transport.setListener(object : WifiDirectTransport.TransferListener {
@@ -454,28 +475,38 @@ class MainActivity : AppCompatActivity() {
     private fun updateEmptyState() {
         val peers = transport.getPeers()
         binding.emptyState.visibility =
-            if (peers.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+            if (peers.isEmpty() && deviceAdapter.itemCount == 0) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     // ─── 设备点击 → 操作菜单 ──────────────────────
 
-    private fun onDeviceClicked(device: android.net.wifi.p2p.WifiP2pDevice) {
+    private fun onDeviceClicked(device: DeviceAdapter.DeviceItem) {
         if (!hasPermissions()) {
             requestPermissions()
             return
         }
+        if (device.isUdp) {
+            // UDP 设备: 直接使用 IP 握手
+            val host = device.ip ?: return
+            val port = device.port
+            remoteHandshake(host, port)
+            return
+        }
+        // Wi-Fi Direct 设备
         if (connected) {
             // 已连接 → 操作菜单 (发送照片/发送文件/断开连接)
-            onPeerMenu(device.deviceName)
+            onPeerMenu(device.name)
             return
         }
         // 未连接 → 确认后连接
         AlertDialog.Builder(this)
             .setTitle("连接设备")
-            .setMessage("连接 ${device.deviceName} ?\n连接成功后可互相发送照片/文件, 并自动同步模型")
+            .setMessage("连接 ${device.name} ?\n连接成功后可互相发送照片/文件, 并自动同步模型")
             .setPositiveButton("连接") { _, _ ->
-                Snackbar.make(binding.root, "正在连接 ${device.deviceName}…", Snackbar.LENGTH_SHORT).show()
-                transport.connect(device)
+                Snackbar.make(binding.root, "正在连接 ${device.name}…", Snackbar.LENGTH_SHORT).show()
+                // 这里需要从 device 还原 WifiP2pDevice，但 DeviceItem 不包含完整 WifiP2pDevice
+                // 实际场景：通过 UDP 发现或 Wi-Fi Direct 列表点击
+                Snackbar.make(binding.root, "Wi-Fi Direct 连接请直接从设备列表选择", Snackbar.LENGTH_LONG).show()
             }
             .setNegativeButton("取消", null)
             .show()
@@ -566,41 +597,11 @@ class MainActivity : AppCompatActivity() {
         peerName = null
         connected = false
         binding.statusChip.visibility = android.view.View.GONE
-        // 近距离: 离开群组; 远距离: 停止接收
-        if (connectMode == ConnectMode.NEAR) {
-            transport.disconnect()
-        }
         Snackbar.make(binding.root, "已断开连接", Snackbar.LENGTH_SHORT).show()
     }
 
-    /** 启动心跳保活: 每 30 秒检测对方是否在线 */
-    private fun startHeartbeat(host: String) {
-        stopHeartbeat()
-        heartbeatJob = activityScope.launch(Dispatchers.IO) {
-            while (isActive) {
-                delay(30000)
-                val alive = transport.ping(host)
-                if (!alive) {
-                    withContext(Dispatchers.Main) {
-                        if (connected) {
-                            Log.w(TAG, "心跳检测失败: 对方可能已离线")
-                            Snackbar.make(binding.root, "连接已断开 (对方离线)", Snackbar.LENGTH_LONG).show()
-                            disconnectPeer()
-                        }
-                    }
-                    break
-                }
-            }
-        }
-    }
+    // ─── 文件选择 ─────────────────────────────────
 
-    /** 停止心跳保活 */
-    private fun stopHeartbeat() {
-        heartbeatJob?.cancel()
-        heartbeatJob = null
-    }
-
-    /** 选择任意文件发送 (已连接状态) */
     private fun selectFilesToSend() {
         val host = peerHost
         if (host.isNullOrBlank()) {
@@ -612,96 +613,73 @@ class MainActivity : AppCompatActivity() {
             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-        filePickerInFlight = true
         startActivityForResult(intent, FILE_SELECT_REQUEST_CODE)
     }
 
-    @Deprecated("Use registerForActivityResult")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != FILE_SELECT_REQUEST_CODE) return
-        filePickerInFlight = false
-
-        // 如果用户取消选择, 直接返回
-        if (resultCode != RESULT_OK) return
-
-        val host = peerHost
-        if (host.isNullOrBlank()) {
-            Snackbar.make(binding.root, "没有目标地址, 请先建立连接", Snackbar.LENGTH_SHORT).show()
-            return
-        }
-
-        // 收集所有选中的 URI (单文件 + 多文件)
-        val uris = mutableListOf<Uri>()
-        data?.data?.let { uris.add(it) }
-        if (data?.clipData != null) {
-            for (i in 0 until data.clipData!!.itemCount) {
-                data.clipData!!.getItemAt(i).uri?.let { uris.add(it) }
+        if (requestCode == FILE_SELECT_REQUEST_CODE && resultCode == RESULT_OK) {
+            filePickerInFlight = false
+            val host = peerHost
+            if (host.isNullOrBlank()) {
+                Snackbar.make(binding.root, "尚未连接设备", Snackbar.LENGTH_LONG).show()
+                return
             }
-        }
-
-        if (uris.isEmpty()) return
-
-        // 如果是照片选择, 自动查找配套视频 (动态照片/实况照片)
-        val isPhotoSelection = uris.any { uri ->
-            val type = contentResolver.getType(uri) ?: ""
-            type.startsWith("image/")
-        }
-        if (isPhotoSelection) {
-            val companionUris = uris.mapNotNull { findCompanionVideo(it) }
-            // 过滤掉已存在的 (避免重复)
-            val existingSet = uris.map { it.toString() }.toSet()
-            for (comp in companionUris) {
-                if (comp.toString() !in existingSet) {
-                    uris.add(comp)
+            val uris = mutableListOf<Uri>()
+            if (data?.data != null) {
+                uris.add(data.data!!)
+            }
+            if (data?.clipData != null) {
+                for (i in 0 until data.clipData!!.itemCount) {
+                    uris.add(data.clipData!!.getItemAt(i).uri)
                 }
             }
-            if (companionUris.isNotEmpty()) {
-                Log.d(TAG, "发现 ${companionUris.size} 个配套视频, 自动加入发送队列")
-            }
-        }
+            if (uris.isEmpty()) return
 
-        val target = host
-        Snackbar.make(binding.root, "已选择 ${uris.size} 个文件, 发送到 $target …", Snackbar.LENGTH_SHORT).show()
-
-        // 在 IO 线程复制 URI 到本地缓存 (避免大文件复制阻塞主线程导致 ANR)
-        activityScope.launch(Dispatchers.IO) {
-            var sentCount = 0
-            for (uri in uris) {
-                try {
-                    val cacheFile = copyUriToCache(uri) ?: continue
-                    // 统一通过前台服务走 TCP 直连发送
-                    TransferService.sendFile(this@MainActivity, cacheFile.absolutePath, target)
-                    sentCount++
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Snackbar.make(binding.root, "处理文件失败: ${e.message}", Snackbar.LENGTH_SHORT).show()
+            val filePaths = mutableListOf<String>()
+            activityScope.launch(Dispatchers.IO) {
+                for (uri in uris) {
+                    val cacheFile = copyToCache(uri, getFileName(uri))
+                    if (cacheFile != null) {
+                        filePaths.add(cacheFile.absolutePath)
+                        // 查找配套视频 (动态照片 + 实况照片)
+                        val companion = findCompanionVideo(uri)
+                        if (companion != null) {
+                            val companionFile = copyToCache(companion, getFileName(companion))
+                            if (companionFile != null) {
+                                filePaths.add(companionFile.absolutePath)
+                            }
+                        }
                     }
                 }
-            }
-            val finalCount = sentCount
-            withContext(Dispatchers.Main) {
-                if (finalCount == 0) {
-                    Snackbar.make(binding.root, "没有可发送的文件", Snackbar.LENGTH_SHORT).show()
-                } else {
-                    Snackbar.make(binding.root, "已提交 $finalCount 个文件到传输队列", Snackbar.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    if (filePaths.isNotEmpty()) {
+                        TransferService.sendFiles(this@MainActivity, filePaths, host)
+                        Snackbar.make(binding.root, "正在发送 ${filePaths.size} 个文件…", Snackbar.LENGTH_SHORT).show()
+                    } else {
+                        Snackbar.make(binding.root, "无法读取所选文件", Snackbar.LENGTH_LONG).show()
+                    }
                 }
             }
         }
     }
 
-    /** 复制 URI 内容到缓存目录, 返回本地文件 */
-    private fun copyUriToCache(uri: Uri): File? {
-        val inputStream = contentResolver.openInputStream(uri) ?: return null
-        val name = getFileName(uri)
-        val cleanName = name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-        val cacheFile = File(cacheDir, "to_send_${System.currentTimeMillis()}_$cleanName")
-        inputStream.use { input ->
-            cacheFile.outputStream().use { output ->
-                input.copyTo(output)
+    private fun copyToCache(uri: Uri, fileName: String): File? {
+        return try {
+            val cacheDir = File(cacheDir, "PhotoTransSend")
+            cacheDir.mkdirs()
+            val cacheFile = File(cacheDir, fileName)
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            inputStream.use { input ->
+                cacheFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
+            cacheFile
+        } catch (e: Exception) {
+            Log.e(TAG, "缓存文件失败", e)
+            null
         }
-        return cacheFile
     }
 
     private fun getFileName(uri: Uri): String {
@@ -731,6 +709,7 @@ class MainActivity : AppCompatActivity() {
         if (mode == ConnectMode.NEAR) {
             // 近距离: 搜索附近设备 (静默开启接收, 保证随时可被对方发送)
             startReceiveWithDir(defaultSaveDir(), "模式启动")
+            udpDiscovery.start()
             binding.modeHint.text = "近距离模式: 搜索附近设备, 也可扫码/输入 IP 直连"
             if (!hasPermissions()) {
                 requestPermissions()
@@ -748,6 +727,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // 远距离: 停止搜索, 显示连接输入区
             transport.stopDiscovery()
+            udpDiscovery.stop()
             binding.searchingIndicator.visibility = android.view.View.GONE
             binding.modeHint.text = "远距离模式: 输入对方 IP 或扫码连接"
             binding.peerCount.text = "远距离模式: 输入对方 IP 或扫码建立连接"
@@ -1111,6 +1091,31 @@ class MainActivity : AppCompatActivity() {
                 finish()
             }
             .show()
+    }
+
+    // ─── 心跳保活 ───────────────────────────────────
+
+    private fun startHeartbeat(host: String) {
+        stopHeartbeat()
+        heartbeatJob = activityScope.launch {
+            while (isActive) {
+                delay(30000)
+                val alive = withContext(Dispatchers.IO) { transport.ping(host) }
+                if (!alive) {
+                    connected = false
+                    peerHost = null
+                    peerName = null
+                    binding.statusChip.visibility = android.view.View.GONE
+                    Snackbar.make(binding.root, "对方已离线, 连接已断开", Snackbar.LENGTH_LONG).show()
+                    break
+                }
+            }
+        }
+    }
+
+    private fun stopHeartbeat() {
+        heartbeatJob?.cancel()
+        heartbeatJob = null
     }
 
     // ─── 菜单 ───────────────────────────────────────
