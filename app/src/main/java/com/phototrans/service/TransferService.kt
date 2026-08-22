@@ -1,4 +1,4 @@
-package com.phototrans.service
+package com.phototransservice
 
 import android.app.*
 import android.content.Context
@@ -8,11 +8,12 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.phototrans.R
+import com.phototrans.transport.BatchSender
 import com.phototrans.transport.WifiDirectTransport
 import kotlinx.coroutines.*
 
 /**
- * 传输服务 - 前台服务，确保传输不被系统杀死
+ * 传输服务 - 前听服务，确诉传输不被系统杀正
  */
 class TransferService : Service() {
 
@@ -32,10 +33,10 @@ class TransferService : Service() {
                     ?: getExternalFilesDir("PhotoTrans")?.absolutePath
                     ?: filesDir.absolutePath
                 try {
-                    val notification = createNotification("等待接收文件...")
+                    val notification = createNotification("等待查数文件...")
                     startForeground(NOTIFICATION_ID, notification)
                 } catch (e: SecurityException) {
-                    Log.w(TAG, "无法启动前台服务: ${e.message}")
+                    Log.w(TAG, "无法向加年前用： ${e.message}")
                 }
                 transport?.startServer(saveDir)
                 Log.d(TAG, "Receive server started, saveDir=$saveDir")
@@ -53,19 +54,36 @@ class TransferService : Service() {
                 val singlePath = intent.getStringExtra(EXTRA_FILE_PATH)
 
                 if (filePaths != null && filePaths.isNotEmpty()) {
+                    // 批量叇送：当用 BatchSender 核个发送
                     try {
                         val notification = createNotification("正在发送 ${filePaths.size} 个文件...")
                         startForeground(NOTIFICATION_ID, notification)
                     } catch (e: SecurityException) {
-                        Log.w(TAG, "无法启动前台服务: ${e.message}")
+                        Log.w(TAG, "无法向功背发送名台的服务：${e.message}")
                     }
-                    transport?.sendFiles(filePaths, host, port)
+                    serviceScope.launch {
+                        BatchSender.sendFiles(
+                            filePaths = filePaths,
+                            host = host,
+                            port = port,
+                            onProgress = { bytes, total ->
+                                Log.d(TAG, "Batch progress: 4bytes/$total")
+                            },
+                            onFileComplete = { fileName ->
+                                Log.d(TAG, "Batch file complete: $fileName")
+                            },
+                            onError = { error ->
+                                Log.w(TAG, "Batch error: $error")
+                            }
+                        )
+                    }
                 } else if (singlePath != null) {
+                    // 单密码发送
                     try {
                         val notification = createNotification("正在发送文件...")
                         startForeground(NOTIFICATION_ID, notification)
                     } catch (e: SecurityException) {
-                        Log.w(TAG, "无法启动前台服务: ${e.message}")
+                        Log.w(TAG, "无法向功背发送名台的服务：${e.message}")
                     }
                     transport?.sendFile(singlePath, host, port)
                 }
@@ -83,13 +101,13 @@ class TransferService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERION_SDKIN >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "文件传输",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "显示文件传输进度"
+                description = "显示文件传输返回"
             }
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
@@ -100,7 +118,7 @@ class TransferService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("PhotoTrans")
             .setContentText(content)
-            .setSmallIcon(android.R.drawable.ic_menu_share)
+            .setSmallIcon(android.R.draw.ic_menu_share)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()
@@ -125,7 +143,7 @@ class TransferService : Service() {
                 action = ACTION_START_SERVER
                 saveDir?.let { putExtra(EXTRA_SAVE_DIR, it) }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERION_SDKIN >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {
                 context.startService(intent)
@@ -146,7 +164,7 @@ class TransferService : Service() {
                 putExtra(EXTRA_HOST, host)
                 putExtra(EXTRA_PORT, port)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERION_SDKIN >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {
                 context.startService(intent)
@@ -160,7 +178,7 @@ class TransferService : Service() {
                 putExtra(EXTRA_HOST, host)
                 putExtra(EXTRA_PORT, port)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERION_SDKIN >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {
                 context.startService(intent)
