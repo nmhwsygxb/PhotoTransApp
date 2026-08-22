@@ -35,10 +35,8 @@ class TransferService : Service() {
                     val notification = createNotification("等待接收文件...")
                     startForeground(NOTIFICATION_ID, notification)
                 } catch (e: SecurityException) {
-                    // 无 POST_NOTIFICATIONS 权限时跳过前台服务, 直接启动服务器
                     Log.w(TAG, "无法启动前台服务: ${e.message}")
                 }
-                // 启动接收服务 (TCP 直连不依赖 Wi-Fi Direct, 无需 register)
                 transport?.startServer(saveDir)
                 Log.d(TAG, "Receive server started, saveDir=$saveDir")
             }
@@ -48,16 +46,29 @@ class TransferService : Service() {
                 stopSelf()
             }
             ACTION_SEND_FILE -> {
-                val filePath = intent.getStringExtra(EXTRA_FILE_PATH) ?: return START_NOT_STICKY
                 val host = intent.getStringExtra(EXTRA_HOST) ?: return START_NOT_STICKY
                 val port = intent.getIntExtra(EXTRA_PORT, WifiDirectTransport.TRANSFER_PORT)
-                try {
-                    val notification = createNotification("正在发送文件...")
-                    startForeground(NOTIFICATION_ID, notification)
-                } catch (e: SecurityException) {
-                    Log.w(TAG, "无法启动前台服务: ${e.message}")
+
+                val filePaths = intent.getStringArrayListExtra(EXTRA_FILE_PATHS)
+                val singlePath = intent.getStringExtra(EXTRA_FILE_PATH)
+
+                if (filePaths != null && filePaths.isNotEmpty()) {
+                    try {
+                        val notification = createNotification("正在发送 ${filePaths.size} 个文件...")
+                        startForeground(NOTIFICATION_ID, notification)
+                    } catch (e: SecurityException) {
+                        Log.w(TAG, "无法启动前台服务: ${e.message}")
+                    }
+                    transport?.sendFiles(filePaths, host, port)
+                } else if (singlePath != null) {
+                    try {
+                        val notification = createNotification("正在发送文件...")
+                        startForeground(NOTIFICATION_ID, notification)
+                    } catch (e: SecurityException) {
+                        Log.w(TAG, "无法启动前台服务: ${e.message}")
+                    }
+                    transport?.sendFile(singlePath, host, port)
                 }
-                transport?.sendFile(filePath, host, port)
             }
         }
         return START_NOT_STICKY
@@ -105,6 +116,7 @@ class TransferService : Service() {
         const val ACTION_SEND_FILE = "com.phototrans.SEND_FILE"
         const val EXTRA_SAVE_DIR = "save_dir"
         const val EXTRA_FILE_PATH = "file_path"
+        const val EXTRA_FILE_PATHS = "file_paths"
         const val EXTRA_HOST = "host"
         const val EXTRA_PORT = "port"
 
@@ -131,6 +143,20 @@ class TransferService : Service() {
             val intent = Intent(context, TransferService::class.java).apply {
                 action = ACTION_SEND_FILE
                 putExtra(EXTRA_FILE_PATH, filePath)
+                putExtra(EXTRA_HOST, host)
+                putExtra(EXTRA_PORT, port)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        fun sendFiles(context: Context, filePaths: List<String>, host: String, port: Int = WifiDirectTransport.TRANSFER_PORT) {
+            val intent = Intent(context, TransferService::class.java).apply {
+                action = ACTION_SEND_FILE
+                putStringArrayListExtra(EXTRA_FILE_PATHS, ArrayList(filePaths))
                 putExtra(EXTRA_HOST, host)
                 putExtra(EXTRA_PORT, port)
             }
