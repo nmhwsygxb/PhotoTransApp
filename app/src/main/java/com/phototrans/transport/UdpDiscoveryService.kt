@@ -1,5 +1,6 @@
 package com.phototrans.transport
 
+import android.os.Build
 import android.util.Log
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -68,6 +69,14 @@ class UdpDiscoveryService {
     fun start() {
         if (running.getAndSet(true)) return
         Log.d(TAG, "Starting UDP discovery on port $DISCOVERY_PORT")
+
+        // 修复: 上层 (MainActivity) 从未调用 setupIdentity 时，本机身份为空，
+        // UDP 广播会回环到本机 socket，导致把“自己”也加进设备列表；
+        // 同时 beacon 的 deviceName 恒为默认 "Android"。
+        // 这里在 start() 时兜底用真实机型名初始化身份。
+        if (myDeviceIdentity.isEmpty() || myDeviceIdentity.endsWith("|")) {
+            setupIdentity(Build.MODEL)
+        }
 
         try {
             socket = DatagramSocket(DISCOVERY_PORT).apply {
