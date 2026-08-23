@@ -430,6 +430,10 @@ class WifiDirectTransport private constructor(context: Context) {
                     return@launch
                 }
 
+                // 修复 Bug5: 只设置了 connect 超时, 未设置读超时;
+                // 若对端连接后不回复握手/响应, readLineBytes 会永久阻塞。
+                socket.soTimeout = 15000
+
                 val outputStream = socket.getOutputStream()
                 val inputStream = socket.getInputStream()
                 val fileSize = file.length()
@@ -483,6 +487,15 @@ class WifiDirectTransport private constructor(context: Context) {
 
                 socket.close()
                 socket = null
+
+                // 修复 Bug6: 非 2xx 响应(如 400/411)表示文件未收到,
+                // 不能当作成功上报; 否则空文件/被拒时用户误以为发送成功。
+                if (!transferOk) {
+                    withContext(Dispatchers.Main) {
+                        listener?.onTransferFailed("对方未接收 ${file.name} (${httpResponse ?: "无响应"})")
+                    }
+                    return@launch
+                }
 
                 withContext(Dispatchers.Main) {
                     listener?.onTransferComplete(file.name)
