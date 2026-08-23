@@ -71,6 +71,9 @@ object BatchSender {
                 }
 
                 val sock = socket ?: throw Exception("Failed to connect after 3 attempts")
+                // 修复 Bug5: 只设置了 connect 超时, 读握手响应/HTTP 响应时
+                // 若对端不回复, readLineBytes 会永久阻塞。设置 soTimeout 兜底。
+                sock.soTimeout = 15000
                 val outputStream = sock.getOutputStream()
                 val inputStream = sock.getInputStream()
                 val fileSize = file.length()
@@ -83,6 +86,9 @@ object BatchSender {
                 val peerHandshake = readLineBytes(inputStream)
                 if (peerHandshake != null && peerHandshake.startsWith("PT-HI")) {
                     Log.d(TAG, "Handshake with: ${peerHandshake.removePrefix("PT-HI").trim()}")
+                } else {
+                    Log.w(TAG, "Invalid handshake reply: $peerHandshake (file=${file.name})")
+                    throw Exception("对方握手响应异常: ${peerHandshake ?: "无响应"}")
                 }
 
                 // HTTP PUT 请求头
@@ -116,7 +122,7 @@ object BatchSender {
                 val httpResponse = readLineBytes(inputStream)
                 Log.d(TAG, "HTTP response for ${file.name}: $httpResponse")
 
-                // 可选：继续读取直到空行
+                // 可选的剩余头部行读取
                 if (httpResponse != null && httpResponse.startsWith("HTTP/")) {
                     while (true) {
                         val line = readLineBytes(inputStream) ?: break
@@ -126,6 +132,14 @@ object BatchSender {
 
                 sock.close()
                 socket = null
+
+                // 修复 Bug6: 校验响应状态码, 非 2xx 视为失败,
+                // 避免 0 字节/被拒绝时误报"发送成功"
+                if (httpResponse == null || !httpResponse.startsWith("HTTP/1.1 2")) {
+                    Log.w(TAG, "Non-2xx response for ${file.name}: $httpResponse")
+                    onError?.invoke("发送 ${file.name} 失败: 对方返回 ${httpResponse ?: "无响应"}")
+                    continue
+                }
 
                 onFileComplete?.invoke(file.name)
                 Log.d(TAG, "File ${file.name} sent successfully")
