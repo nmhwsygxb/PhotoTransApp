@@ -60,6 +60,10 @@ class WifiDirectTransport private constructor(context: Context) {
     enum class Role { NONE, SENDER, RECEIVER }
     private var role: Role = Role.NONE
 
+    // 当前正在处理的接收连接数 (防并发耗尽)
+    @Volatile
+    private var activeConnections = 0
+
     // 广播接收器 (动态注册, 避免 Manifest 无默认构造崩溃)
     private var receiver: WifiDirectBroadcastReceiver? = null
     private var registered = false
@@ -76,6 +80,14 @@ class WifiDirectTransport private constructor(context: Context) {
     companion object {
         const val TRANSFER_PORT = 47808
         private const val TAG = "WifiDirectTransport"
+
+        // 安全防护: 接收端上限 (防止恶意/异常对端造成 DoS)
+        /** 单个接收文件大小上限 (默认 2GB, 超限拒绝 413) */
+        private const val MAX_RECEIVE_FILE_SIZE = 2L * 1024 * 1024 * 1024
+        /** 单行 (请求行/头部行) 最大长度, 防止恶意无换行行导致 OOM */
+        private const val MAX_HEADER_LINE_LENGTH = 64 * 1024
+        /** 同时处理的连接数上限, 防止连接耗尽线程/内存 */
+        private const val MAX_CONCURRENT_CONNECTIONS = 16
 
         @Volatile
         private var instance: WifiDirectTransport? = null
@@ -547,8 +559,20 @@ class WifiDirectTransport private constructor(context: Context) {
                     val socket = sSocket.accept()
                     Log.d(TAG, "Client connected: ${socket.inetAddress}")
 
+                    // 并发连接保护: 超过上限则拒绝新连接, 防止资源耗尽
+                    if (activeConnections >= MAX_CONCURRENT_CONNECTIONS) {
+                        Log.w(TAG, "Reject connection: too many active (${activeConnections})")
+                        try { socket.close() } catch (_: Exception) {}
+                        continue
+                    }
+
+                    activeConnections++
                     launch {
-                        handleClient(socket, saveDir)
+                        try {
+                            handleClient(socket, saveDir)
+                        } finally {
+                            activeConnections--
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -618,6 +642,15 @@ class WifiDirectTransport private constructor(context: Context) {
 
             if (fileName.isEmpty() || contentLength <= 0) {
                 outputStream.write("HTTP/1.1 400 Bad Request\r\n\r\n".toByteArray())
+                outputStream.flush()
+                socket.close()
+                return
+            }
+
+            // 安全防护: 超大文件拒绝 (413), 防止恶意 Content-Length 填满存储
+            if (contentLength > MAX_RECEIVE_FILE_SIZE) {
+                Log.w(TAG, "Reject oversized file: $fileName ($contentLength bytes)")
+                outputStream.write("HTTP/1.1 413 Payload Too Large\r\n\r\n".toByteArray())
                 outputStream.flush()
                 socket.close()
                 return
@@ -899,8 +932,17 @@ class WifiDirectTransport private constructor(context: Context) {
         val sb = StringBuilder()
         var b = input.read()
         if (b == -1) return null
+        var length = 0
         while (b != -1 && b != '\n'.code) {
-            if (b != '\r'.code) sb.append(b.toChar())
+            // 安全防护: 单行长度上限, 防止恶意无换行行导致内存耗尽 (OOM)
+            if (length > MAX_HEADER_LINE_LENGTH) {
+                Log.w(TAG, "Header line too long, closing connection")
+                return null
+            }
+            if (b != '\r'.code) {
+                sb.append(b.toChar())
+                length++
+            }
             b = input.read()
         }
         return sb.toString()
