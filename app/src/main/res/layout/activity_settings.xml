@@ -291,6 +291,19 @@
                         app:strokeColor="@color/transfer_failed"
                         app:strokeWidth="1dp" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnExportLogs"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="6dp"
+                        android:text="导出日志 (发给开发者)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        app:backgroundTint="@color/surface_variant"
+                        app:cornerRadius="10dp"
+                        app:strokeColor="@color/secondary"
+                        app:strokeWidth="1dp" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
