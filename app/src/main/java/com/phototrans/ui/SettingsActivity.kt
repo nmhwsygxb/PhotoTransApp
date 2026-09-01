@@ -78,6 +78,11 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "后台学习已启动", Toast.LENGTH_SHORT).show()
         }
 
+        // 导出日志 (发给开发者)
+        binding.btnExportLogs.setOnClickListener {
+            com.phototrans.AppLogger.shareExport(this)
+        }
+
         // 清除缓存
         binding.btnClearCache.setOnClickListener {
             val cacheDir = File(cacheDir, "PhotoTransRecv")
