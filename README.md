@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/github/license/nmhwsygxb/PhotoTransApp)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](https://github.com/nmhwsygxb/PhotoTransApp)
 
-**同项目的另外两端：** [iOS · SwiftUI](https://github.com/nmhwsygxb/PhotoTrans-iOS) · [HarmonyOS · ArkTS](https://github.com/nmhwsygxb/PhotoTrans-HarmonyOS)
+**同项目的另外三端：** [iOS · SwiftUI](https://github.com/nmhwsygxb/PhotoTrans-iOS) · [HarmonyOS · ArkTS](https://github.com/nmhwsygxb/PhotoTrans-HarmonyOS) · [电脑端网盘 · PhotoTransDrive](https://github.com/nmhwsygxb/PhotoTransDrive)
 
 </div>
 
@@ -35,6 +35,10 @@
 | 📶 双模式连接 | 近场：同 Wi-Fi 自动发现 · 远场：扫码 / 输入 IP 直连 |
 | 🔒 隐私优先 | 纯局域网 P2P，文件不经任何服务器 |
 | 📚 可学习模型库 | 支持持续学习新设备格式，本地存储 |
+
+## 网盘：把电脑变成口袋里的网盘
+
+配合电脑端 [PhotoTransDrive](https://github.com/nmhwsygxb/PhotoTransDrive) 使用：手机直连电脑上的文件夹，在家直连、出门经桥访问，文件不经任何服务器。手机端用法见 [网盘使用指南](docs/DRIVE_GUIDE.md)。
 
 ## 下载
 
