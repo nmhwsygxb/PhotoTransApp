@@ -18,6 +18,8 @@
 
 ---
 
+> ⚠️ **预览版（Pre-release）**：本版本未经更深层的完整验证，如遇到任何问题，欢迎到 [Issues](https://github.com/nmhwsygxb/PhotoTransApp/issues) 及时反馈（附上日志更好）。
+
 ## 为什么做这个
 
 各家手机品牌的照片封装格式各不相同——华为的 HDR+、苹果的 HEIC/Live Photo、小米/OPPO/vivo 的动态照片——互相传时要么打不开、要么丢元数据。**PhotoTrans 在传输时自动做格式转译**，让任意两台手机之间都能无缝传照片，同时保留 HDR、动态效果等原始信息。
